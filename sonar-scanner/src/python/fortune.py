@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import struct, random, string
+import struct, random, string, os
 
 # C long variables are different sizes on 32-bit and 64-bit machines,
 # so we have to measure how big they are on the machine where this is running.
@@ -48,7 +48,13 @@ def get(filename):
     ## #define  str_delim       stuff[0]        /* delimiting character */
     ## } STRFILE;
 
-    datfile = open(filename+'.dat', 'r')
+    base_dir = os.path.realpath(os.getcwd()) + os.sep
+    dat_path = os.path.realpath(os.path.join(base_dir, filename + '.dat'))
+    file_path = os.path.realpath(os.path.join(base_dir, filename))
+    if not dat_path.startswith(base_dir) or not file_path.startswith(base_dir):
+        raise ValueError("Access denied: path traversal detected")
+
+    datfile = open(dat_path, 'r')
     data = datfile.read(5 * LONG_SIZE)
     if is_64_bit:
         v1, v2, n1, n2, l1, l2, s1, s2, f1, f2 = struct.unpack('!10L', data)
@@ -76,7 +82,7 @@ def get(filename):
         start, end = struct.unpack('!ll', data)
     datfile.close()
 
-    file = open(filename, 'r')
+    file = open(file_path, 'r')
     file.seek(start)
     quotation = file.read(end-start)
     L=string.split(quotation, '\n')
