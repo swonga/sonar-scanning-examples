@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import struct, string, sys
+import struct, string, sys, os
 
 if len(sys.argv)==1:
     print "Usage: strfile.py <filename>"
@@ -36,8 +36,17 @@ is_64_bit = (LONG_SIZE == 8)
 delimiter = '%'                         # The standard delimiter
 
 filename = sys.argv[1]
-input = open(filename, 'r')
-output = open(filename + '.dat', 'w')
+
+base_dir = os.path.realpath(os.getcwd()) + os.sep
+file_path = os.path.join(base_dir, filename)
+canonical_path = os.path.realpath(file_path)
+output_path = os.path.realpath(file_path + '.dat')
+
+if not canonical_path.startswith(base_dir) or not output_path.startswith(base_dir):
+    sys.exit("Access denied")
+
+input = open(canonical_path, 'r')
+output = open(output_path, 'w')
 output.seek(LONG_SIZE * 6)              # Skip over the header for now
 
 # Output a 32- or 64-bit integer
